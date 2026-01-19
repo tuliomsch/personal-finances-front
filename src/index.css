@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  /* --- Colores Personalizados --- */
+  
+  /* Primary */
+  --color-primary: #2563EB; /* DEFAULT */
+  --color-primary-light: #EFF6FF;
+  --color-primary-dark: #1E40AF;
+  --color-primary-darker: #1E3A8A;
+
+  /* Secondary */
+  --color-secondary: #10B981; /* DEFAULT */
+  --color-secondary-light: #D1FAE5;
+  --color-secondary-dark: #059669;
+
+  /* Accent */
+  --color-accent: #F59E0B; /* DEFAULT */
+  --color-accent-light: #FEF3C7;
+  --color-accent-dark: #D97706;
+
+  /* Neutral */
+  --color-neutral: #64748B; /* DEFAULT */
+  --color-neutral-light: #F1F5F9;
+  --color-neutral-dark: #334155;
+  --color-neutral-darker: #1E293B;
+
+  /* Functional Colors */
+  --color-success: #10B981;
+  --color-success-dark: #059669;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-error-dark: #DC2626;
+  --color-info: #3B82F6;
+
+  /* --- Tipografías --- */
+  --font-sans: "Inter", "system-ui", "-apple-system", "sans-serif";
+  --font-display: "Inter", "system-ui", "sans-serif";
+
+  /* --- Sombras (Box Shadow) --- */
+  --shadow-soft: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+  --shadow-medium: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+  --shadow-strong: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.3);
+  --shadow-glow-green: 0 0 20px rgba(16, 185, 129, 0.3);
+
+  /* --- Animaciones --- */
+  --animate-fade-in: fadeIn 0.5s ease-in-out;
+  --animate-slide-up: slideUp 0.5s ease-out;
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  /* Keyframes (se definen directamente aquí) */
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #1E293B;
+}
