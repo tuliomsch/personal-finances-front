@@ -7,6 +7,7 @@ export interface AccountData {
     balance: number;
     currencyCode: string;
     bankName?: string;
+    cardDebt?: number;
 }
 
 export interface AccountsDataWithTotal {

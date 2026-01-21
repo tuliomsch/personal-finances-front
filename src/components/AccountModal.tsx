@@ -19,10 +19,12 @@ export function AccountModal({ isOpen, onClose, account, onSuccess }: AccountMod
     const [type, setType] = useState('');
     const [bankName, setBankName] = useState('');
     const [balance, setBalance] = useState('');
+    const [cardDebt, setCardDebt] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const isEditMode = !!account;
+    const isCreditCard = type === 'CREDIT_CARD';
 
     useEffect(() => {
         if (isOpen) {
@@ -31,11 +33,13 @@ export function AccountModal({ isOpen, onClose, account, onSuccess }: AccountMod
                 setType(account.type);
                 setBankName(account.bankName || '');
                 setBalance(String(Math.round(Number(account.balance))));
+                setCardDebt(account.type === 'CREDIT_CARD' && account.cardDebt ? String(Math.round(Number(account.cardDebt))) : '');
             } else {
                 setName('');
                 setType('');
                 setBankName('');
                 setBalance('');
+                setCardDebt('');
             }
             setError(null);
         }
@@ -58,6 +62,10 @@ export function AccountModal({ isOpen, onClose, account, onSuccess }: AccountMod
             setError('Ingresa un saldo válido');
             return;
         }
+        if (isCreditCard && cardDebt && parseFloat(cardDebt) < 0) {
+            setError('Ingresa una deuda válida');
+            return;
+        }
 
         setLoading(true);
         try {
@@ -68,6 +76,7 @@ export function AccountModal({ isOpen, onClose, account, onSuccess }: AccountMod
                 balance: parseInt(balance),
                 currencyCode: userProfile.currencyPref,
                 bankName: bankName || undefined,
+                cardDebt: isCreditCard && cardDebt ? parseInt(cardDebt) : undefined,
             };
 
             if (isEditMode && account) {
@@ -129,14 +138,31 @@ export function AccountModal({ isOpen, onClose, account, onSuccess }: AccountMod
 
                 <div>
                     <label className="block text-sm font-medium text-neutral-darker mb-2">
-                        Saldo {isEditMode ? 'actual' : 'inicial'}
+                        {isCreditCard ? 'Cupo total' : `Saldo ${isEditMode ? 'actual' : 'inicial'}`}
                     </label>
                     <MoneyInput
                         value={balance}
                         onChange={setBalance}
                         currency={userProfile?.currencyPref || 'CLP'}
                     />
+                    {isCreditCard && (
+                        <p className="text-xs text-neutral mt-1">El límite de crédito total de tu tarjeta</p>
+                    )}
                 </div>
+
+                {isCreditCard && (
+                    <div className="animate-fade-in">
+                        <label className="block text-sm font-medium text-neutral-darker mb-2">
+                            Deuda actual
+                        </label>
+                        <MoneyInput
+                            value={cardDebt}
+                            onChange={setCardDebt}
+                            currency={userProfile?.currencyPref || 'CLP'}
+                        />
+                        <p className="text-xs text-neutral mt-1">Cuánto debes actualmente</p>
+                    </div>
+                )}
 
                 {error && (
                     <div className="p-3 bg-error/10 text-error text-sm rounded-lg text-center animate-shake">

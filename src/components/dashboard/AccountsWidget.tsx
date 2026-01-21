@@ -18,6 +18,7 @@ export interface DashboardAccount {
     balance: number;
     currencyCode: string;
     bankName?: string;
+    cardDebt?: number;
 }
 
 interface AccountsWidgetProps {
@@ -115,8 +116,8 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
                         <button
                             onClick={() => setIsEditMode(!isEditMode)}
                             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isEditMode
-                                    ? 'text-white bg-neutral-dark hover:bg-neutral-darker'
-                                    : 'text-primary hover:text-primary-dark hover:bg-primary/10'
+                                ? 'text-white bg-neutral-dark hover:bg-neutral-darker'
+                                : 'text-primary hover:text-primary-dark hover:bg-primary/10'
                                 }`}
                         >
                             {isEditMode ? 'Listo' : 'Administrar'}
@@ -136,45 +137,79 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
                                     {groupName}
                                 </h4>
                                 <div className="space-y-3">
-                                    {groupAccounts.map(account => (
-                                        <div key={account.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-light/30 transition-colors group border border-transparent hover:border-neutral-light/50">
-                                            <div className="flex items-center space-x-4 flex-1">
-                                                {getIcon(account.type)}
-                                                <div className="flex-1">
-                                                    <p className="font-semibold text-neutral-darker">{account.name}</p>
-                                                    {account.bankName && (
-                                                        <p className="text-xs text-neutral">{account.bankName.replace(/_/g, ' ')}</p>
+                                    {groupAccounts.map(account => {
+                                        const isCreditCard = account.type === 'CREDIT_CARD';
+                                        const creditLimit = isCreditCard ? Number(account.balance) : 0;
+                                        const creditDebt = isCreditCard && account.cardDebt ? Number(account.cardDebt) : 0;
+                                        const creditAvailable = creditLimit - creditDebt;
+                                        const creditUsagePercent = isCreditCard && creditLimit > 0
+                                            ? (creditDebt / creditLimit) * 100
+                                            : 0;
+
+                                        return (
+                                            <div key={account.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-light/30 transition-colors group border border-transparent hover:border-neutral-light/50">
+                                                <div className="flex items-center space-x-4 flex-1">
+                                                    {getIcon(account.type)}
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-semibold text-neutral-darker">{account.name}</p>
+                                                        {account.bankName && (
+                                                            <p className="text-xs text-neutral">{account.bankName.replace(/_/g, ' ')}</p>
+                                                        )}
+                                                        {isCreditCard && (
+                                                            <div className="mt-2 space-y-1">
+                                                                <div className="flex items-center gap-2 text-xs">
+                                                                    <span className="text-neutral">
+                                                                        Usado: <span className="font-semibold text-error">{formatCurrency(creditDebt, account.currencyCode)}</span>
+                                                                    </span>
+                                                                    <span className="text-neutral-light">•</span>
+                                                                    <span className="text-neutral">
+                                                                        Disponible: <span className="font-semibold text-success">{formatCurrency(creditAvailable, account.currencyCode)}</span>
+                                                                    </span>
+                                                                </div>
+                                                                <div className="w-full bg-neutral-light/50 rounded-full h-1.5 overflow-hidden">
+                                                                    <div
+                                                                        className={`h-full rounded-full transition-all ${creditUsagePercent > 80 ? 'bg-error' :
+                                                                                creditUsagePercent > 50 ? 'bg-warning' :
+                                                                                    'bg-success'
+                                                                            }`}
+                                                                        style={{ width: `${Math.min(creditUsagePercent, 100)}%` }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    {!isCreditCard && (
+                                                        <div className="text-right">
+                                                            <p className="font-bold text-neutral-darker">
+                                                                {formatCurrency(account.balance, account.currencyCode)}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                    {isEditMode && (
+                                                        <div className="flex gap-2 animate-fade-in">
+                                                            <button
+                                                                onClick={() => handleEditAccount(account)}
+                                                                className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                                                                title="Editar cuenta"
+                                                            >
+                                                                <EditIcon className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setDeleteConfirm(account.id)}
+                                                                className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"
+                                                                title="Eliminar cuenta"
+                                                                disabled={accounts.length === 1}
+                                                            >
+                                                                <TrashIcon className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="text-right">
-                                                    <p className="font-bold text-neutral-darker">
-                                                        {formatCurrency(account.balance, account.currencyCode)}
-                                                    </p>
-                                                </div>
-                                                {isEditMode && (
-                                                    <div className="flex gap-2 animate-fade-in">
-                                                        <button
-                                                            onClick={() => handleEditAccount(account)}
-                                                            className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                                                            title="Editar cuenta"
-                                                        >
-                                                            <EditIcon className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setDeleteConfirm(account.id)}
-                                                            className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"
-                                                            title="Eliminar cuenta"
-                                                            disabled={accounts.length === 1}
-                                                        >
-                                                            <TrashIcon className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )
