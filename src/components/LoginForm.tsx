@@ -11,9 +11,10 @@ interface LoginFormProps {
     mode: 'signIn' | 'signUp';
     onSubmit: (email: string, password: string) => Promise<{ success: boolean; data?: unknown; error?: string | null }>;
     onSuccess?: (data?: unknown) => void;
+    setSignedUpEmail?: (email: string) => void;
 }
 
-export function LoginForm({ mode, onSubmit, onSuccess }: LoginFormProps) {
+export function LoginForm({ mode, onSubmit, onSuccess, setSignedUpEmail }: LoginFormProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -27,6 +28,7 @@ export function LoginForm({ mode, onSubmit, onSuccess }: LoginFormProps) {
         try {
             const result = await onSubmit(email, password);
             if (result.success) {
+                if (setSignedUpEmail) setSignedUpEmail(email);
                 if (onSuccess) onSuccess(result.data);
             } else {
                 setError(result.error || `Ocurrió un error inesperado durante el ${mode === 'signIn' ? 'inicio de sesión' : 'registro'}. Por favor, inténtalo de nuevo.`);
