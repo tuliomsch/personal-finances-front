@@ -14,8 +14,7 @@ export function CompleteProfileView() {
     const [lastName, setLastName] = useState('');
     const [currency, setCurrency] = useState('CLP');
 
-    // Step 2 state
-    const [accounts, setAccounts] = useState<{ type: string; name: string; balance: string; bankName?: string }[]>([
+    const [accounts, setAccounts] = useState<{ type: string; name: string; balance: string; bankName?: string; cardDebt?: string }[]>([
         { type: 'Efectivo', name: 'Billetera', balance: '' }
     ]);
 
@@ -50,6 +49,7 @@ export function CompleteProfileView() {
                 name: acc.name,
                 balance: parseFloat(acc.balance) || 0,
                 bankName: acc.bankName,
+                cardDebt: acc.cardDebt ? parseFloat(acc.cardDebt) : undefined,
             }));
 
             const profileData = {

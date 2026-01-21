@@ -13,7 +13,6 @@ import { ExclamationCircleIcon } from '../icons/ExclamationCircleIcon';
 import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
 import { CloseIcon } from '../icons/CloseIcon';
 
-// Common account types available for selection
 export type AccountType = 'Efectivo' | 'Cuenta Vista/Rut' | 'Cuenta Corriente' | 'Tarjeta de Crédito' | 'Cuenta de Ahorro';
 
 export interface AccountData {
@@ -21,6 +20,7 @@ export interface AccountData {
     name: string;
     balance: string;
     bankName?: string;
+    cardDebt?: string;
 }
 
 interface Step2Props {
@@ -33,7 +33,6 @@ interface Step2Props {
     error: string | null;
 }
 
-// Icons for each account type
 const getAccountIcon = (type: string) => {
     switch (type) {
         case 'Efectivo':
@@ -65,17 +64,23 @@ const getBankLabel = (value?: string) => {
 export function Step2({ accounts, setAccounts, currency, handleSubmit, handleBack, loading, error }: Step2Props) {
     const [isUniqueModalOpen, setIsUniqueModalOpen] = useState(false);
 
-    // New Account Form State
     const [newAccountType, setNewAccountType] = useState<AccountType>('Cuenta Corriente');
     const [newAccountBalance, setNewAccountBalance] = useState('');
     const [newAccountName, setNewAccountName] = useState('');
     const [newAccountBankName, setNewAccountBankName] = useState('');
+    const [newAccountCardDebt, setNewAccountCardDebt] = useState('');
 
     const currencySymbol = getCurrencySymbol(currency);
 
     const handleUpdateBalance = (index: number, val: string) => {
         const updated = [...accounts];
-        updated[index].balance = val; // val is already cleaned by MoneyInput
+        updated[index].balance = val;
+        setAccounts(updated);
+    };
+
+    const handleUpdateCardDebt = (index: number, val: string) => {
+        const updated = [...accounts];
+        updated[index].cardDebt = val;
         setAccounts(updated);
     };
 
@@ -104,6 +109,10 @@ export function Step2({ accounts, setAccounts, currency, handleSubmit, handleBac
             newAccount.bankName = newAccountBankName.trim();
         }
 
+        if (newAccountType === 'Tarjeta de Crédito' && newAccountCardDebt) {
+            newAccount.cardDebt = newAccountCardDebt;
+        }
+
         setAccounts([
             ...accounts,
             newAccount
@@ -113,6 +122,7 @@ export function Step2({ accounts, setAccounts, currency, handleSubmit, handleBac
         setNewAccountBalance('');
         setNewAccountName('');
         setNewAccountBankName('');
+        setNewAccountCardDebt('');
         setNewAccountType('Cuenta Corriente');
         setIsUniqueModalOpen(false);
     };
@@ -125,7 +135,14 @@ export function Step2({ accounts, setAccounts, currency, handleSubmit, handleBac
         'Cuenta de Ahorro'
     ];
 
-    const totalBalance = accounts.reduce((sum, acc) => sum + (parseFloat(acc.balance) || 0), 0);
+    const totalBalance = accounts.reduce((sum, acc) => {
+        const balance = parseFloat(acc.balance) || 0;
+        if (acc.type === 'Tarjeta de Crédito') {
+            const debt = parseFloat(acc.cardDebt || '0') || 0;
+            return sum - debt;
+        }
+        return sum + balance;
+    }, 0);
 
     return (
         <div className="animate-fade-in">
@@ -199,15 +216,67 @@ export function Step2({ accounts, setAccounts, currency, handleSubmit, handleBac
                                         </button>
                                     )}
                                 </div>
-                                <div className="relative">
-                                    <MoneyInput
-                                        value={account.balance}
-                                        onChange={(val) => handleUpdateBalance(index, val)}
-                                        currency={currency}
-                                        placeholder="0"
-                                        className="border-transparent bg-neutral-light/20 focus:bg-white hover:bg-neutral-light/40"
-                                    />
-                                </div>
+                                {account.type === 'Tarjeta de Crédito' ? (
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-xs font-medium text-neutral-dark mb-1">Cupo total</label>
+                                            <MoneyInput
+                                                value={account.balance}
+                                                onChange={(val) => handleUpdateBalance(index, val)}
+                                                currency={currency}
+                                                placeholder="0"
+                                                className="border-transparent bg-neutral-light/20 focus:bg-white hover:bg-neutral-light/40"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-neutral-dark mb-1">Deuda actual</label>
+                                            <MoneyInput
+                                                value={account.cardDebt || ''}
+                                                onChange={(val) => handleUpdateCardDebt(index, val)}
+                                                currency={currency}
+                                                placeholder="0"
+                                                className="border-transparent bg-neutral-light/20 focus:bg-white hover:bg-neutral-light/40"
+                                            />
+                                        </div>
+                                        {(() => {
+                                            const debt = parseFloat(account.cardDebt || '0') || 0;
+                                            const limit = parseFloat(account.balance) || 0;
+                                            const usagePercent = limit > 0 ? (debt / limit) * 100 : 0;
+                                            return (
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center justify-between text-xs">
+                                                        <span className="text-neutral">Utilización</span>
+                                                        <span className={`font-semibold ${usagePercent > 80 ? 'text-error' :
+                                                                usagePercent > 50 ? 'text-warning' :
+                                                                    'text-success'
+                                                            }`}>
+                                                            {usagePercent.toFixed(1)}%
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full bg-neutral-light/50 rounded-full h-1.5 overflow-hidden">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all ${usagePercent > 80 ? 'bg-error' :
+                                                                    usagePercent > 50 ? 'bg-warning' :
+                                                                        'bg-success'
+                                                                }`}
+                                                            style={{ width: `${Math.min(usagePercent, 100)}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                ) : (
+                                    <div className="relative">
+                                        <MoneyInput
+                                            value={account.balance}
+                                            onChange={(val) => handleUpdateBalance(index, val)}
+                                            currency={currency}
+                                            placeholder="0"
+                                            className="border-transparent bg-neutral-light/20 focus:bg-white hover:bg-neutral-light/40"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -315,7 +384,9 @@ export function Step2({ accounts, setAccounts, currency, handleSubmit, handleBac
                                 )}
 
                                 <div>
-                                    <label className="block text-sm font-medium text-neutral-dark mb-1">Saldo Inicial</label>
+                                    <label className="block text-sm font-medium text-neutral-dark mb-1">
+                                        {newAccountType === 'Tarjeta de Crédito' ? 'Cupo total' : 'Saldo Inicial'}
+                                    </label>
                                     <MoneyInput
                                         value={newAccountBalance}
                                         onChange={setNewAccountBalance}
@@ -323,7 +394,23 @@ export function Step2({ accounts, setAccounts, currency, handleSubmit, handleBac
                                         autoFocus
                                         placeholder="Ej: 500000"
                                     />
+                                    {newAccountType === 'Tarjeta de Crédito' && (
+                                        <p className="text-xs text-neutral mt-1">El límite de crédito total de tu tarjeta</p>
+                                    )}
                                 </div>
+
+                                {newAccountType === 'Tarjeta de Crédito' && (
+                                    <div className="animate-fade-in">
+                                        <label className="block text-sm font-medium text-neutral-dark mb-1">Deuda actual</label>
+                                        <MoneyInput
+                                            value={newAccountCardDebt}
+                                            onChange={setNewAccountCardDebt}
+                                            currency={currency}
+                                            placeholder="Ej: 100000"
+                                        />
+                                        <p className="text-xs text-neutral mt-1">Cuánto debes actualmente</p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex space-x-4 pt-1">
