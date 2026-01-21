@@ -1,7 +1,7 @@
 import { Navigate, Link } from "react-router-dom";
 import { LoginForm } from "../components/LoginForm";
 import { useAuth } from "../hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MailIcon } from "../components/icons/MailIcon";
 import { CheckIcon } from "../components/icons/CheckIcon";
 import { ChevronRightIcon } from "../components/icons/ChevronRightIcon";
@@ -10,8 +10,30 @@ import { SavingsIcon } from "../components/icons/SavingsIcon";
 import { TrendingIcon } from "../components/icons/TrendingIcon";
 
 export function SignUpView() {
-    const { session, signUp } = useAuth();
+    const { session, signUp, resendVerificationEmail } = useAuth();
     const [signedUpUser, setSignedUpUser] = useState(false);
+    const [email, setEmail] = useState('');
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [resending, setResending] = useState(false);
+
+    useEffect(() => {
+        if (resendCooldown > 0) {
+            const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [resendCooldown]);
+
+    const handleResendEmail = async () => {
+        if (resendCooldown > 0 || resending) return;
+
+        setResending(true);
+        const result = await resendVerificationEmail(email);
+        setResending(false);
+
+        if (result.success) {
+            setResendCooldown(60);
+        }
+    };
 
     if (session) {
         return <Navigate to="/" replace />;
@@ -39,6 +61,17 @@ export function SignUpView() {
                     <div className="mt-8 p-5 bg-primary-light/50 rounded-2xl border-2 border-primary-light">
                         <p className="text-sm text-neutral-darker text-center font-medium">
                             <strong className="text-primary-dark">¿No recibiste el correo?</strong> Revisa tu carpeta de spam o solicita un nuevo enlace.
+                            <button
+                                className={`ml-1 transition-colors inline-flex items-center group ${resendCooldown > 0 || resending
+                                        ? 'text-neutral cursor-not-allowed'
+                                        : 'text-primary hover:text-primary-dark'
+                                    }`}
+                                onClick={handleResendEmail}
+                                disabled={resendCooldown > 0 || resending}
+                            >
+                                {resending ? 'Enviando...' : resendCooldown > 0 ? `Espera ${resendCooldown}s` : 'Solicitar nuevo enlace'}
+                                {!resending && resendCooldown === 0 && <ChevronRightIcon className="ml-1 w-4 h-4 transform group-hover:translate-x-1 transition-transform" />}
+                            </button>
                         </p>
                     </div>
                 </div>
@@ -66,7 +99,7 @@ export function SignUpView() {
                             </p>
                         </div>
                         <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                            <LoginForm mode="signUp" onSubmit={signUp} onSuccess={() => setSignedUpUser(true)} />
+                            <LoginForm mode="signUp" onSubmit={signUp} setSignedUpEmail={setEmail} onSuccess={() => {setSignedUpUser(true); setResendCooldown(60);}} />
                         </div>
                     </div>
                 </div>
