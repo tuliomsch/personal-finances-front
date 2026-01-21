@@ -109,7 +109,7 @@ export function DashboardView() {
 
                     {/* Left Column (2/3 width on large screens) */}
                     <div className="lg:col-span-2 space-y-6">
-                        <AccountsWidget accounts={accounts} loading={loadingAccounts} />
+                        <AccountsWidget accounts={accounts} loading={loadingAccounts} onRefresh={refreshData} />
                     </div>
 
                     {/* Right Column (1/3 width) */}
