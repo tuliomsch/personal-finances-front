@@ -55,7 +55,7 @@ export function AccountsWidget({ accounts, loading }: AccountsWidgetProps) {
     const groups = {
         'Efectivo': accounts.filter(a => a.type === 'CASH'),
         'Cuentas Bancarias': accounts.filter(a => ['DEPOSIT', 'CHECKING'].includes(a.type)),
-        'Tarjetas': accounts.filter(a => a.type === 'CREDIT'),
+        'Tarjetas': accounts.filter(a => a.type === 'CREDIT_CARD'),
         'Ahorro e Inversión': accounts.filter(a => ['SAVINGS', 'INVESTMENTS'].includes(a.type)),
     };
 
