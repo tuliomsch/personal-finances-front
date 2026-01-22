@@ -10,6 +10,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
   signOut: () => Promise<void>;
   resendVerificationEmail: (email: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,11 +67,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return { success: true, data };
   };
-  
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
-  
+
   const resendVerificationEmail = async (email: string) => {
     const { data, error } = await supabase.auth.resend({
       email: email,
@@ -84,6 +85,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return { success: true, data };
   };
-  
-  return <AuthContext.Provider value={{ session, user, loading, signIn, signUp, signOut, resendVerificationEmail }} children={children} />;
+
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+
+    if (error) {
+      console.error('Error during Google sign in:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  };
+
+  return <AuthContext.Provider value={{ session, user, loading, signIn, signUp, signOut, resendVerificationEmail, signInWithGoogle }} children={children} />;
 }

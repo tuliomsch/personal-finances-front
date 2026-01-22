@@ -6,15 +6,17 @@ import { EyeOffIcon } from './icons/EyeOffIcon';
 import { SpinnerIcon } from './icons/SpinnerIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
 import { ExclamationCircleIcon } from './icons/ExclamationCircleIcon';
+import { GoogleIcon } from './icons/GoogleIcon';
 
 interface LoginFormProps {
     mode: 'signIn' | 'signUp';
     onSubmit: (email: string, password: string) => Promise<{ success: boolean; data?: unknown; error?: string | null }>;
     onSuccess?: (data?: unknown) => void;
     setSignedUpEmail?: (email: string) => void;
+    onGoogleSignIn: () => void;
 }
 
-export function LoginForm({ mode, onSubmit, onSuccess, setSignedUpEmail }: LoginFormProps) {
+export function LoginForm({ mode, onSubmit, onSuccess, setSignedUpEmail, onGoogleSignIn }: LoginFormProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -128,6 +130,25 @@ export function LoginForm({ mode, onSubmit, onSuccess, setSignedUpEmail }: Login
                     <div className="absolute inset-0 bg-linear-to-r from-white/0 via-white/10 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 </button>
             </div>
+
+            {/* Divider */}
+            <div className="relative flex items-center py-2">
+                <div className="flex-grow border-t border-neutral-light"></div>
+                <span className="flex-shrink mx-4 text-neutral text-sm font-medium">o continúa con</span>
+                <div className="flex-grow border-t border-neutral-light"></div>
+            </div>
+
+            {/* Google Sign In Button */}
+            <button
+                type="button"
+                onClick={onGoogleSignIn}
+                disabled={loading}
+                className="flex justify-center items-center w-full px-6 py-4 text-base font-semibold text-neutral-darker bg-white border-2 border-neutral-light rounded-xl shadow-soft hover:shadow-medium hover:border-neutral focus:outline-none focus:ring-4 focus:ring-neutral/20 disabled:opacity-60 disabled:cursor-not-allowed transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group"
+            >
+                <GoogleIcon className="w-5 h-5 mr-3" />
+                <span>Google</span>
+            </button>
+
             {error && (
                 <div className="mt-4 p-4 bg-error/10 border-2 border-error/20 rounded-xl animate-slide-up">
                     <p className="text-sm text-center text-error flex items-center justify-center font-medium">
