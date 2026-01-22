@@ -66,6 +66,17 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #E5E7EB; /* Gris muy suave */
+  border-radius: 20px;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: #1E293B;
