@@ -70,7 +70,11 @@ export function AccountSelect({ value, onChange, error, label = "Selecciona una 
                         <>
                             <span className="text-neutral-darker font-medium truncate w-full">{selectedAccount.name}</span>
                             <span className="text-xs text-neutral truncate w-full">
-                                {selectedAccount.bankName?.replace(/_/g, ' ') || 'EFECTIVO'} • ${Number(selectedAccount.balance).toLocaleString()}
+                                {selectedAccount.bankName?.replace(/_/g, ' ') || 'EFECTIVO'} • ${
+                                    selectedAccount.type === 'CREDIT_CARD'
+                                        ? Number(selectedAccount.balance - (selectedAccount.cardDebt || 0)).toLocaleString() + ' disponible'
+                                        : Number(selectedAccount.balance).toLocaleString()
+                                }
                             </span>
                         </>
                     ) : (
@@ -103,7 +107,11 @@ export function AccountSelect({ value, onChange, error, label = "Selecciona una 
                                     <div className="flex flex-col">
                                         <span>{account.name}</span>
                                         <span className="text-xs opacity-70">
-                                            {account.bankName?.replace(/_/g, ' ') || account.type} • ${Number(account.balance).toLocaleString()}
+                                            {account.bankName?.replace(/_/g, ' ') || account.type} • ${
+                                                account.type === 'CREDIT_CARD'
+                                                    ? Number(account.balance - (account.cardDebt || 0)).toLocaleString() + ' disponible'
+                                                    : Number(account.balance).toLocaleString()
+                                            }
                                         </span>
                                     </div>
                                     {value === account.id && (

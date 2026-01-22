@@ -90,15 +90,13 @@ export function DashboardView() {
                         label="Ingresos (Mes)"
                         amount={totalIncome}
                         currency="CLP"
-                        trend={12.0}
-                        variant="default" // White card
+                        variant="default"
                         icon={<StonksIcon className="w-6 h-6 text-success-dark" />}
                     />
                     <SummaryCard
                         label="Gastos (Mes)"
                         amount={totalExpense}
                         currency="CLP"
-                        trend={-5.4} // Good trend (expenses down)
                         variant="default"
                         icon={<NotStonksIcon className="w-6 h-6 text-error-dark" />}
                     />
