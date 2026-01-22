@@ -8,7 +8,7 @@ import { SavingsIcon } from "../components/icons/SavingsIcon";
 import { TrendingIcon } from "../components/icons/TrendingIcon";
 
 export function SignInView() {
-    const { session, signIn } = useAuth();
+    const { session, signIn, signInWithGoogle } = useAuth();
 
     if (session) {
         return <Navigate to="/" replace />;
@@ -38,7 +38,7 @@ export function SignInView() {
                         </p>
                     </div>
                     <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                        <LoginForm mode="signIn" onSubmit={signIn} />
+                        <LoginForm mode="signIn" onSubmit={signIn} onGoogleSignIn={signInWithGoogle} />
                     </div>
                 </div>
             </div>

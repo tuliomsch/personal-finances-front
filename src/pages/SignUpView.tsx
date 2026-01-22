@@ -10,7 +10,7 @@ import { SavingsIcon } from "../components/icons/SavingsIcon";
 import { TrendingIcon } from "../components/icons/TrendingIcon";
 
 export function SignUpView() {
-    const { session, signUp, resendVerificationEmail } = useAuth();
+    const { session, signUp, resendVerificationEmail, signInWithGoogle } = useAuth();
     const [signedUpUser, setSignedUpUser] = useState(false);
     const [email, setEmail] = useState('');
     const [resendCooldown, setResendCooldown] = useState(0);
@@ -63,8 +63,8 @@ export function SignUpView() {
                             <strong className="text-primary-dark">¿No recibiste el correo?</strong> Revisa tu carpeta de spam o solicita un nuevo enlace.
                             <button
                                 className={`ml-1 transition-colors inline-flex items-center group ${resendCooldown > 0 || resending
-                                        ? 'text-neutral cursor-not-allowed'
-                                        : 'text-primary hover:text-primary-dark'
+                                    ? 'text-neutral cursor-not-allowed'
+                                    : 'text-primary hover:text-primary-dark'
                                     }`}
                                 onClick={handleResendEmail}
                                 disabled={resendCooldown > 0 || resending}
@@ -99,7 +99,7 @@ export function SignUpView() {
                             </p>
                         </div>
                         <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                            <LoginForm mode="signUp" onSubmit={signUp} setSignedUpEmail={setEmail} onSuccess={() => {setSignedUpUser(true); setResendCooldown(60);}} />
+                            <LoginForm mode="signUp" onSubmit={signUp} setSignedUpEmail={setEmail} onSuccess={() => { setSignedUpUser(true); setResendCooldown(60); }} onGoogleSignIn={signInWithGoogle} />
                         </div>
                     </div>
                 </div>
