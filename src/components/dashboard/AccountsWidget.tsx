@@ -125,7 +125,7 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
                     </div>
                 </div>
 
-                <div className="p-4 space-y-6 overflow-y-auto max-h-[500px] custom-scrollbar">
+                <div className="p-4 space-y-6 overflow-y-auto max-h-[525px] custom-scrollbar">
                     {loading ? (
                         <div className="flex items-center justify-center py-8">
                             <SpinnerIcon className="w-8 h-8 text-primary animate-spin" />
