@@ -16,7 +16,7 @@ export function DashboardView() {
     const [accounts, setAccounts] = useState<DashboardAccount[]>([]);
     const [totalBalance, setTotalBalance] = useState<number>(0);
     const [loadingAccounts, setLoadingAccounts] = useState(true);
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
     const [totalIncome, setTotalIncome] = useState<number>(0);
     const [totalExpense, setTotalExpense] = useState<number>(0);
     const [loadingTransactions, setLoadingTransactions] = useState(true);
@@ -42,8 +42,8 @@ export function DashboardView() {
                     type: tx.type,
                     category: tx.category.name,
                     icon: tx.category.icon,
-                }));
-                setTransactions(mappedTransactions);
+                })).slice(0, 5);
+                setRecentTransactions(mappedTransactions);
                 setTotalIncome(transactionsData.totalIncome);
                 setTotalExpense(transactionsData.totalExpense);
             } catch (error) {
@@ -112,7 +112,7 @@ export function DashboardView() {
 
                     {/* Right Column (1/3 width) */}
                     <div className="space-y-6">
-                        <RecentTransactions transactions={transactions} loading={loadingTransactions} />
+                        <RecentTransactions transactions={recentTransactions} loading={loadingTransactions} />
                     </div>
                 </div>
 
