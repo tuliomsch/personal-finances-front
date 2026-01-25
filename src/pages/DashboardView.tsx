@@ -9,6 +9,7 @@ import { useUserProfile } from '../hooks/useUserProfile';
 import { useState, useEffect } from 'react';
 import { accountService } from '../services/accountService';
 import { transactionService } from '../services/transactionService';
+import { DateFilterDropdown } from '../components/dashboard/DateFilterDropdown';
 
 export function DashboardView() {
     const { userProfile } = useUserProfile();
@@ -70,10 +71,7 @@ export function DashboardView() {
                         <h1 className="text-3xl font-bold text-neutral-darker">Panel General</h1>
                         <p className="text-neutral text-lg">Resumen de tu salud financiera</p>
                     </div>
-                    {/* Date or Filter could go here */}
-                    <div className="text-sm text-neutral-dark font-medium bg-white px-4 py-2 rounded-xl border border-neutral-light shadow-sm">
-                        Enero 2026
-                    </div>
+                    <DateFilterDropdown />
                 </div>
 
                 {/* Summary Cards Grid */}
