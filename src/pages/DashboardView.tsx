@@ -40,8 +40,8 @@ export function DashboardView() {
                     amount: tx.amount,
                     transactionDate: tx.transactionDate,
                     type: tx.type,
-                    category: tx.category.name,
-                    icon: tx.category.icon,
+                    category: tx.category?.name || 'Transferencia',
+                    icon: tx.category?.icon || '💸',
                 })).slice(0, 5);
                 setRecentTransactions(mappedTransactions);
                 setTotalIncome(transactionsData.totalIncome);
