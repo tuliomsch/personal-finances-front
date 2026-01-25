@@ -6,7 +6,7 @@ export interface Transaction {
     description: string;
     amount: number;
     transactionDate: string;
-    type: 'INCOME' | 'EXPENSE';
+    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
     category: string;
     icon: string;
 }
