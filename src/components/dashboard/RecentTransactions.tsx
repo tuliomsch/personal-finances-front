@@ -29,7 +29,7 @@ export function RecentTransactions({ transactions, loading }: RecentTransactions
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
 
-        const dateOnly = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+        const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
 
@@ -38,14 +38,11 @@ export function RecentTransactions({ transactions, loading }: RecentTransactions
         } else if (dateOnly.getTime() === yesterdayOnly.getTime()) {
             return 'Ayer';
         } else {
-            const formatted = new Intl.DateTimeFormat('es-CL', {
+            return new Intl.DateTimeFormat('es-CL', {
                 weekday: 'long',
                 day: 'numeric',
-                month: 'long',
-                timeZone: 'UTC'
+                month: 'long'
             }).format(date);
-
-            return formatted.charAt(0).toUpperCase() + formatted.slice(1);
         }
     };
 
@@ -87,7 +84,7 @@ export function RecentTransactions({ transactions, loading }: RecentTransactions
                     groupedTransactions.map((group, groupIndex) => (
                         <div key={groupIndex} className="space-y-1">
                             <div className="sticky top-0 bg-white z-10 py-2">
-                                <h4 className="text-sm font-bold text-neutral-dark">{group.label}</h4>
+                                <h4 className="text-sm font-bold text-neutral-dark capitalize">{group.label}</h4>
                             </div>
 
                             {group.transactions.map((tx) => (
