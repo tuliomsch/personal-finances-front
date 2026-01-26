@@ -6,6 +6,7 @@ import { SignUpView } from './pages/SignUpView';
 import { DashboardView } from './pages/DashboardView';
 import { NotFoundView } from './pages/NotFoundView';
 import { CompleteProfileView } from './pages/CompleteProfileView';
+import { SettingsView } from './pages/SettingsView';
 import { MainLayout } from './components/MainLayout';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
               <Route path="/" element={<DashboardView />} />
+              <Route path="/settings" element={<SettingsView />} />
               <Route path="/transactions" element={<div>Transacciones</div>} />
               {/* Cualquier otra ruta que necesite el perfil completo */}
             </Route>

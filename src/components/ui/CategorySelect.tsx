@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronIcon } from '../icons/ChevronIcon';
 import { CheckIcon } from '../icons/CheckIcon';
+import { PlusIcon } from '../icons/PlusIcon';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { categoryService } from '../../services/categoryService';
+import { CreateCategoryModal } from '../CreateCategoryModal';
 
 interface CategoryOption {
     id: number;
@@ -25,16 +27,22 @@ export function CategorySelect({ value, onChange, type, error }: CategorySelectP
     const containerRef = useRef<HTMLDivElement>(null);
     const [categories, setCategories] = useState<CategoryOption[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     useEffect(() => {
         if (userProfile?.id) {
             setLoading(true);
-            categoryService.getCategories(userProfile.id)
-                .then(data => setCategories(data))
-                .catch(console.error)
-                .finally(() => setLoading(false));
+            loadCategories();
         }
     }, [userProfile]);
+
+    const loadCategories = () => {
+        if (!userProfile?.id) return;
+        categoryService.getCategories(userProfile.id)
+            .then(data => setCategories(data))
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    };
 
     const filteredCategories = categories.filter(c => c.type === type);
 
@@ -53,6 +61,12 @@ export function CategorySelect({ value, onChange, type, error }: CategorySelectP
 
     const handleSelect = (val: number) => {
         onChange(val);
+        setIsOpen(false);
+    };
+
+    const handleCreateSuccess = (newCategory: any) => {
+        loadCategories();
+        onChange(newCategory.id);
         setIsOpen(false);
     };
 
@@ -124,9 +138,27 @@ export function CategorySelect({ value, onChange, type, error }: CategorySelectP
                                 No se encontraron categorías
                             </div>
                         )}
+
+                        <div className="border-t border-neutral-light/50 mt-1 pt-1">
+                            <button
+                                type="button"
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="w-full px-3 py-2.5 text-left text-sm font-bold text-primary hover:bg-primary/5 rounded-lg transition-colors flex items-center gap-2"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                                <span>Crear nueva categoría...</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
+
+            <CreateCategoryModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSuccess={handleCreateSuccess}
+                initialType={type}
+            />
         </div>
     );
 }
