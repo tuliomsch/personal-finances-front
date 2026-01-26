@@ -10,13 +10,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'logo.png', 'logo-F.svg'],
       manifest: {
-        name: 'FinanzasApp',
-        short_name: 'Finanzas',
+        name: 'Flou - Finanzas Personales',
+        short_name: 'Flou',
         description: 'Control profesional de tus finanzas personales',
-        theme_color: '#2563EB',
-        background_color: '#FFFFFF',
+        theme_color: '#3B82F6',
+        background_color: '#F8FAFC',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
@@ -24,6 +24,7 @@ export default defineConfig({
             src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any maskable'
           },
           {
             src: 'pwa-512x512.png',
