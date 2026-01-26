@@ -22,14 +22,28 @@ export function DashboardView() {
     const [totalExpense, setTotalExpense] = useState<number>(0);
     const [loadingTransactions, setLoadingTransactions] = useState(true);
 
+    // Estados para el filtro de fecha (por defectos mes actual)
+    const [startDate, setStartDate] = useState<Date>(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), 1);
+    });
+    const [endDate, setEndDate] = useState<Date>(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    });
+
     const refreshData = async () => {
         if (userProfile?.id) {
             setLoadingAccounts(true);
             setLoadingTransactions(true);
             try {
+                // Formatear fechas para la API (YYYY-MM-DD)
+                const startStr = startDate.toISOString().split('T')[0];
+                const endStr = endDate.toISOString().split('T')[0];
+
                 const [accountsData, transactionsData] = await Promise.all([
                     accountService.getAccounts(userProfile.id),
-                    transactionService.getTransactions(userProfile.id)
+                    transactionService.getTransactions(userProfile.id, startStr, endStr)
                 ]);
 
                 setAccounts(accountsData.accounts);
@@ -58,7 +72,7 @@ export function DashboardView() {
 
     useEffect(() => {
         refreshData();
-    }, [userProfile]);
+    }, [userProfile, startDate, endDate]);
 
     return (
         <div className="min-h-screen bg-neutral-light/20 p-4 sm:p-6 lg:p-8 animate-fade-in">
@@ -71,7 +85,10 @@ export function DashboardView() {
                         <h1 className="text-3xl font-bold text-neutral-darker">Panel General</h1>
                         <p className="text-neutral text-lg">Resumen de tu salud financiera</p>
                     </div>
-                    <DateFilterDropdown />
+                    <DateFilterDropdown onDateRangeChange={(start, end) => {
+                        setStartDate(start);
+                        setEndDate(end);
+                    }} />
                 </div>
 
                 {/* Summary Cards Grid */}

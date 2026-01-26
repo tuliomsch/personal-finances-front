@@ -1,14 +1,83 @@
 import { useState, useEffect, useRef } from 'react';
+import { format, parseISO, startOfMonth, endOfMonth, setYear, setMonth } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { ChevronIcon } from '../icons/ChevronIcon';
-import { CheckIcon } from '../icons/CheckIcon';
+import { CalendarTab } from './tabs/CalendarTab';
+// import { PeriodTab } from './tabs/PeriodTab';
+import { CustomTab } from './tabs/CustomTab';
 
-export function DateFilterDropdown() {
+interface DateFilterDropdownProps {
+    onDateRangeChange?: (startDate: Date, endDate: Date) => void;
+}
+
+export function DateFilterDropdown({ onDateRangeChange }: DateFilterDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'calendar' | 'period' | 'custom'>('calendar');
-    const [selectedOption, setSelectedOption] = useState("Enero 2026");
+
+    const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+    const [selectedOption, setSelectedOption] = useState(() => {
+        return format(new Date(), "MMMM yyyy", { locale: es });
+    });
+
+    const [rangeLabel, setRangeLabel] = useState(() => {
+        const start = startOfMonth(new Date());
+        const end = endOfMonth(new Date());
+        return `${format(start, "dd MMM", { locale: es })} - ${format(end, "dd MMM", { locale: es })}`;
+    });
+
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    // Handler para Calendar Tab
+    const handleMonthSelect = (monthIndex: number) => {
+        let date = new Date();
+        date = setYear(date, currentYear);
+        date = setMonth(date, monthIndex);
+
+        const start = startOfMonth(date);
+        const end = endOfMonth(date);
+
+        setSelectedOption(format(date, "MMMM yyyy", { locale: es }));
+        setRangeLabel(`${format(start, "dd MMM", { locale: es })} - ${format(end, "dd MMM", { locale: es })}`);
+
+        setIsOpen(false);
+
+        if (onDateRangeChange) {
+            onDateRangeChange(start, end);
+        }
+    };
+
+    // Handler para Custom Tab
+    const handleCustomApply = (startStr: string, endStr: string) => {
+        const start = parseISO(`${startStr}T00:00:00`);
+        const end = parseISO(`${endStr}T00:00:00`);
+
+        const label = `${format(start, "dd MMM", { locale: es })} - ${format(end, "dd MMM", { locale: es })}`;
+        setSelectedOption(label);
+        setRangeLabel(label);
+
+        setIsOpen(false);
+
+        if (onDateRangeChange) {
+            onDateRangeChange(start, end);
+        }
+    };
+
+    // Handler para Period Tab
+    // const handlePeriodSelect = (option: string) => {
+    //     setSelectedOption(option);
+    //     setRangeLabel("Periodo seleccionado");
+    //     setIsOpen(false);
+    // };
+
+    const prevYear = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCurrentYear(prev => prev - 1);
+    };
+
+    const nextYear = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCurrentYear(prev => prev + 1);
+    };
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -30,7 +99,7 @@ export function DateFilterDropdown() {
             >
                 <div className="flex flex-col items-start translate-y-[2px]">
                     <span className="text-[10px] text-neutral font-bold uppercase tracking-wider leading-none">Periodo</span>
-                    <span className="text-sm text-neutral-darker font-semibold">{selectedOption}</span>
+                    <span className="text-sm text-neutral-darker font-semibold capitalize">{selectedOption}</span>
                 </div>
                 <ChevronIcon className={`w-5 h-5 text-neutral transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
             </button>
@@ -47,13 +116,13 @@ export function DateFilterDropdown() {
                         >
                             Calendario
                         </button>
-                        <button
+                        {/* <button
                             onClick={() => setActiveTab('period')}
                             className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'period' ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-neutral hover:text-neutral-dark'
                                 }`}
                         >
                             Mi Periodo
-                        </button>
+                        </button> */}
                         <button
                             onClick={() => setActiveTab('custom')}
                             className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'custom' ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-neutral hover:text-neutral-dark'
@@ -66,75 +135,27 @@ export function DateFilterDropdown() {
                     {/* Tabs Content */}
                     <div className="p-2 max-h-[320px] overflow-y-auto custom-scrollbar">
                         {activeTab === 'calendar' && (
-                            <div className="grid grid-cols-2 gap-1 animate-in fade-in duration-300">
-                                {months.map((m) => (
-                                    <button
-                                        key={m}
-                                        onClick={() => { setSelectedOption(`${m} 2026`); setIsOpen(false); }}
-                                        className={`px-3 py-2 text-sm text-left rounded-xl transition-colors flex items-center justify-between ${selectedOption.startsWith(m) ? 'bg-primary/10 text-primary font-bold' : 'text-neutral hover:bg-neutral-light/50'
-                                            }`}
-                                    >
-                                        {m}
-                                        {selectedOption.startsWith(m) && <CheckIcon className="w-4 h-4" />}
-                                    </button>
-                                ))}
-                            </div>
+                            <CalendarTab
+                                currentYear={currentYear}
+                                selectedOption={selectedOption}
+                                onPrevYear={prevYear}
+                                onNextYear={nextYear}
+                                onMonthSelect={handleMonthSelect}
+                            />
                         )}
 
-                        {activeTab === 'period' && (
-                            <div className="space-y-1 animate-in fade-in duration-300">
-                                <div className="px-3 py-2 text-[10px] text-neutral font-bold uppercase tracking-wider bg-neutral-light/10 rounded-lg mb-1">
-                                    Ciclos de Pago (Último día hábil)
-                                </div>
-                                <button
-                                    onClick={() => { setSelectedOption("Periodo Enero (Pagado el 30 Dic)"); setIsOpen(false); }}
-                                    className="w-full px-3 py-3 text-sm text-left rounded-xl hover:bg-neutral-light/50 transition-colors flex flex-col group"
-                                >
-                                    <span className="font-bold text-neutral-darker group-hover:text-primary transition-colors">Periodo Enero</span>
-                                    <span className="text-xs text-neutral">Pagado el 30 de Dic</span>
-                                </button>
-                                <button
-                                    onClick={() => { setSelectedOption("Periodo Febrero (Pagado el 30 Ene)"); setIsOpen(false); }}
-                                    className="w-full px-3 py-3 text-sm text-left rounded-xl bg-primary/10 text-primary font-bold flex flex-col ring-1 ring-primary/20"
-                                >
-                                    <span className="font-bold">Periodo Febrero</span>
-                                    <span className="text-xs opacity-80">Pagado el 30 de Ene</span>
-                                </button>
-                                <button
-                                    onClick={() => { setSelectedOption("Periodo Marzo (Pagado el 27 Feb)"); setIsOpen(false); }}
-                                    className="w-full px-3 py-3 text-sm text-left rounded-xl hover:bg-neutral-light/50 transition-colors flex flex-col group"
-                                >
-                                    <span className="font-bold text-neutral-darker group-hover:text-primary transition-colors">Periodo Marzo</span>
-                                    <span className="text-xs text-neutral">Pagado el 27 de Feb</span>
-                                </button>
-                            </div>
-                        )}
+                        {/* {activeTab === 'period' && (
+                            <PeriodTab onSelect={handlePeriodSelect} />
+                        )} */}
 
                         {activeTab === 'custom' && (
-                            <div className="p-2 space-y-4 animate-in fade-in duration-300">
-                                <div className="space-y-3">
-                                    <div>
-                                        <label className="text-[10px] text-neutral font-bold uppercase mb-1.5 block">Fecha Desde</label>
-                                        <input type="date" className="w-full px-3 py-2 text-sm border border-neutral-light rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] text-neutral font-bold uppercase mb-1.5 block">Fecha Hasta</label>
-                                        <input type="date" className="w-full px-3 py-2 text-sm border border-neutral-light rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" />
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setIsOpen(false)}
-                                    className="w-full py-2.5 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all transform active:scale-95 text-sm"
-                                >
-                                    Aplicar Rango
-                                </button>
-                            </div>
+                            <CustomTab onApply={handleCustomApply} />
                         )}
                     </div>
 
                     {/* Menu Footer */}
                     <div className="p-3 bg-neutral-light/10 border-t border-neutral-light flex justify-between items-center text-[10px] text-neutral">
-                        <span className="font-bold">Rango: 01 Ene - 31 Ene</span>
+                        <span className="font-bold">Rango: {rangeLabel}</span>
                     </div>
                 </div>
             )}
