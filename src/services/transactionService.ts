@@ -33,8 +33,15 @@ export interface CreateTransactionData {
 }
 
 export const transactionService = {
-    async getTransactions(userId: number) {
-        const { data } = await api.get<TransactionsDataWithTotal>(`/transactions/user/${userId}`);
+    async getTransactions(userId: number, startDate?: string, endDate?: string) {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+
+        const queryString = params.toString();
+        const url = `/transactions/user/${userId}${queryString ? `?${queryString}` : ''}`;
+
+        const { data } = await api.get<TransactionsDataWithTotal>(url);
         return data;
     },
 
