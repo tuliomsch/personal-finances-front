@@ -1,7 +1,6 @@
 import { SummaryCard } from '../components/dashboard/SummaryCard';
 import { AccountsWidget, type DashboardAccount } from '../components/dashboard/AccountsWidget';
-import { RecentTransactions, type Transaction } from '../components/dashboard/RecentTransactions';
-import { QuickActions } from '../components/dashboard/QuickActions';
+import { RecentTransactions } from '../components/dashboard/RecentTransactions';
 import { SavingsIcon } from '../components/icons/SavingsIcon';
 import { StonksIcon } from '../components/icons/StonksIcon';
 import { NotStonksIcon } from '../components/icons/NotStonksIcon';
@@ -10,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { accountService } from '../services/accountService';
 import { transactionService } from '../services/transactionService';
 import { DateFilterDropdown } from '../components/dashboard/DateFilterDropdown';
+import { type Transaction } from '../utils/transactions';
 
 export function DashboardView() {
     const { userProfile } = useUserProfile();
@@ -72,6 +72,16 @@ export function DashboardView() {
 
     useEffect(() => {
         refreshData();
+
+        const handleTransactionCreated = () => {
+            refreshData();
+        };
+
+        window.addEventListener('transaction-created', handleTransactionCreated);
+
+        return () => {
+            window.removeEventListener('transaction-created', handleTransactionCreated);
+        };
     }, [userProfile, startDate, endDate]);
 
     return (
@@ -132,7 +142,6 @@ export function DashboardView() {
                 </div>
 
             </div>
-            <QuickActions onTransactionCreated={refreshData} />
         </div>
     );
 }

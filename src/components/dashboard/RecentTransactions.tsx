@@ -1,77 +1,24 @@
-import { formatCurrency } from '../../utils/format';
+// import { formatCurrency } from '../../utils/format';
+import { groupTransactionsByDate, type Transaction } from '../../utils/transactions';
 import { SpinnerIcon } from '../icons/SpinnerIcon';
-
-export interface Transaction {
-    id: string;
-    description: string;
-    amount: number;
-    transactionDate: string;
-    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
-    category: string;
-    icon: string;
-}
+import { TransactionItem } from '../TransactionItem';
+import { useNavigate } from 'react-router-dom';
 
 interface RecentTransactionsProps {
     transactions: Transaction[];
     loading: boolean;
 }
 
-interface GroupedTransactions {
-    label: string;
-    transactions: Transaction[];
-}
-
 export function RecentTransactions({ transactions, loading }: RecentTransactionsProps) {
 
-    const getDateLabel = (dateStr: string): string => {
-        const date = new Date(dateStr);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        const dateOnly = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-
-        if (dateOnly.getTime() === todayOnly.getTime()) {
-            return 'Hoy';
-        } else if (dateOnly.getTime() === yesterdayOnly.getTime()) {
-            return 'Ayer';
-        } else {
-            const formatted = new Intl.DateTimeFormat('es-CL', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                timeZone: 'UTC'
-            }).format(date);
-
-            return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-        }
-    };
-
-    const groupTransactionsByDate = (txs: Transaction[]): GroupedTransactions[] => {
-        const groups: { [key: string]: Transaction[] } = {};
-        txs.forEach(tx => {
-            const label = getDateLabel(tx.transactionDate);
-            if (!groups[label]) {
-                groups[label] = [];
-            }
-            groups[label].push(tx);
-        });
-
-        return Object.entries(groups).map(([label, transactions]) => ({
-            label,
-            transactions
-        }));
-    };
-
+    const navigate = useNavigate();
     const groupedTransactions = groupTransactionsByDate(transactions);
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-neutral-light overflow-hidden flex flex-col h-full">
             <div className="p-6 border-b border-neutral-light/50 flex justify-between items-center">
                 <h3 className="text-lg font-bold text-neutral-darker">Actividad Reciente</h3>
-                <button className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">Ver todo</button>
+                <button onClick={() => navigate('/transactions')} className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">Ver todo</button>
             </div>
 
             <div className="p-4 space-y-4 overflow-y-auto max-h-[525px] custom-scrollbar">
@@ -91,24 +38,7 @@ export function RecentTransactions({ transactions, loading }: RecentTransactions
                             </div>
 
                             {group.transactions.map((tx) => (
-                                <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-light/30 transition-colors group cursor-pointer border border-transparent hover:border-neutral-light/50">
-                                    <div className="flex items-center space-x-4">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${tx.type === 'INCOME' ? 'bg-green-100 text-green-600' : 'bg-neutral-light text-neutral-dark'
-                                            }`}>
-                                            {tx.icon}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-semibold text-neutral-darker line-clamp-1">{tx.description}</p>
-                                            <p className="text-xs text-neutral capitalize">{tx.category}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right whitespace-nowrap pl-2">
-                                        <p className={`font-bold ${tx.type === 'INCOME' ? 'text-green-600' : 'text-neutral-darker'
-                                            }`}>
-                                            {tx.type === 'INCOME' ? '+' : ''}{formatCurrency(tx.amount)}
-                                        </p>
-                                    </div>
-                                </div>
+                                <TransactionItem key={tx.id} transaction={tx} />
                             ))}
                         </div>
                     ))
