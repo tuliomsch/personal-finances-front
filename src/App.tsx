@@ -7,6 +7,7 @@ import { DashboardView } from './pages/DashboardView';
 import { NotFoundView } from './pages/NotFoundView';
 import { CompleteProfileView } from './pages/CompleteProfileView';
 import { SettingsView } from './pages/SettingsView';
+import { TransactionsView } from './pages/TransactionsView';
 import { MainLayout } from './components/MainLayout';
 
 function App() {
@@ -29,7 +30,7 @@ function App() {
             <Route element={<MainLayout />}>
               <Route path="/" element={<DashboardView />} />
               <Route path="/settings" element={<SettingsView />} />
-              <Route path="/transactions" element={<div>Transacciones</div>} />
+              <Route path="/transactions" element={<TransactionsView />} />
               {/* Cualquier otra ruta que necesite el perfil completo */}
             </Route>
           </Route>
