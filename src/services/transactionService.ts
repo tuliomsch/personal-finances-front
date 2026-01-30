@@ -7,6 +7,9 @@ export interface TransactionData {
     transactionDate: string;
     type: 'INCOME' | 'EXPENSE';
     category: CategoryData;
+    accountId: number;
+    categoryId?: number;
+    transferToId?: number;
 }
 
 export interface CategoryData {
@@ -47,6 +50,16 @@ export const transactionService = {
 
     async createTransaction(transactionData: CreateTransactionData) {
         const { data } = await api.post('/transactions', transactionData);
+        return data;
+    },
+
+    async updateTransaction(id: string, transactionData: Partial<CreateTransactionData>) {
+        const { data } = await api.patch(`/transactions/${id}`, transactionData);
+        return data;
+    },
+
+    async deleteTransaction(userId: number, id: string) {
+        const { data } = await api.delete(`/transactions/user/${userId}/${id}`);
         return data;
     }
 }

@@ -11,6 +11,8 @@ import { PlusIcon } from '../icons/PlusIcon';
 import { AccountModal } from '../AccountModal';
 import { accountService } from '../../services/accountService';
 
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+
 export interface DashboardAccount {
     id: number;
     name: string;
@@ -31,7 +33,7 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
     const [isEditMode, setIsEditMode] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedAccount, setSelectedAccount] = useState<DashboardAccount | null>(null);
-    const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
     const [deleting, setDeleting] = useState(false);
 
     const handleAddAccount = () => {
@@ -44,11 +46,12 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
         setModalOpen(true);
     };
 
-    const handleDeleteAccount = async (accountId: number) => {
+    const handleDeleteAccount = async () => {
+        if (!deleteConfirmId) return;
         setDeleting(true);
         try {
-            await accountService.deleteAccount(accountId);
-            setDeleteConfirm(null);
+            await accountService.deleteAccount(deleteConfirmId);
+            setDeleteConfirmId(null);
             if (onRefresh) onRefresh();
         } catch (error) {
             console.error('Error deleting account:', error);
@@ -169,8 +172,8 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
                                                                 <div className="w-full bg-neutral-light/50 rounded-full h-1.5 overflow-hidden">
                                                                     <div
                                                                         className={`h-full rounded-full transition-all ${creditUsagePercent > 80 ? 'bg-error' :
-                                                                                creditUsagePercent > 50 ? 'bg-warning' :
-                                                                                    'bg-success'
+                                                                            creditUsagePercent > 50 ? 'bg-warning' :
+                                                                                'bg-success'
                                                                             }`}
                                                                         style={{ width: `${Math.min(creditUsagePercent, 100)}%` }}
                                                                     />
@@ -197,7 +200,7 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
                                                                 <EditIcon className="w-4 h-4" />
                                                             </button>
                                                             <button
-                                                                onClick={() => setDeleteConfirm(account.id)}
+                                                                onClick={() => setDeleteConfirmId(account.id)}
                                                                 className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"
                                                                 title="Eliminar cuenta"
                                                                 disabled={accounts.length === 1}
@@ -224,33 +227,15 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
                 onSuccess={handleModalSuccess}
             />
 
-            {/* Delete Confirmation Dialog */}
-            {deleteConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-dark/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white rounded-2xl shadow-strong p-6 max-w-sm w-full animate-scale-up">
-                        <h3 className="text-lg font-bold text-neutral-darker mb-2">¿Eliminar cuenta?</h3>
-                        <p className="text-neutral mb-6">
-                            Esta acción no se puede deshacer. Se eliminará la cuenta pero se mantendrán sus transacciones.
-                        </p>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setDeleteConfirm(null)}
-                                className="flex-1 px-4 py-3 rounded-xl font-medium text-neutral-darker bg-neutral-light hover:bg-neutral-light/80 transition-colors"
-                                disabled={deleting}
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={() => handleDeleteAccount(deleteConfirm)}
-                                className="flex-1 px-4 py-3 rounded-xl font-medium text-white bg-error hover:bg-error-dark transition-colors"
-                                disabled={deleting}
-                            >
-                                {deleting ? 'Eliminando...' : 'Eliminar'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDialog
+                isOpen={!!deleteConfirmId}
+                onClose={() => setDeleteConfirmId(null)}
+                onConfirm={handleDeleteAccount}
+                title="¿Eliminar cuenta?"
+                description="Esta acción no se puede deshacer. Se eliminará la cuenta pero se mantendrán sus transacciones."                           
+                confirmLabel="Eliminar"
+                isLoading={deleting}
+            />
         </>
     );
 }

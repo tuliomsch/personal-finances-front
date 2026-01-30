@@ -5,15 +5,17 @@ import { AccountSelect } from './ui/AccountSelect';
 import { CategorySelect } from './ui/CategorySelect';
 import { useUserProfile } from './../hooks/useUserProfile';
 import { transactionService } from '../services/transactionService';
+import { type Transaction } from '../utils/transactions';
 
 interface TransactionModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialType?: 'EXPENSE' | 'INCOME' | 'TRANSFER';
     onSuccess?: () => void;
+    editingTransaction?: Transaction | null;
 }
 
-export function TransactionModal({ isOpen, onClose, initialType = 'EXPENSE', onSuccess }: TransactionModalProps) {
+export function TransactionModal({ isOpen, onClose, initialType = 'EXPENSE', onSuccess, editingTransaction }: TransactionModalProps) {
     const { userProfile } = useUserProfile();
     const [type, setType] = useState<'EXPENSE' | 'INCOME' | 'TRANSFER'>(initialType);
     const [amount, setAmount] = useState('');
@@ -25,16 +27,27 @@ export function TransactionModal({ isOpen, onClose, initialType = 'EXPENSE', onS
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Reset fields when type or open state changes
     useEffect(() => {
         if (isOpen) {
-            setType(initialType);
-            setAmount('');
-            setDescription('');
+            if (editingTransaction) {
+                setType(editingTransaction.type);
+                setAmount(editingTransaction.amount.toString());
+                setAccountId(editingTransaction.accountId);
+                setCategoryId(editingTransaction.categoryId);
+                setTransferToId(editingTransaction.transferToId);
+                setDate(new Date(editingTransaction.transactionDate).toISOString().split('T')[0]);
+                setDescription(editingTransaction.description || '');
+            } else {
+                setType(initialType);
+                setAmount('');
+                setDescription('');
+                setAccountId(undefined);
+                setCategoryId(undefined);
+                setTransferToId(undefined);
+            }
             setError(null);
-            // Don't reset accounts/categories if not needed to improve UX
         }
-    }, [isOpen, initialType]);
+    }, [isOpen, initialType, editingTransaction]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,7 +80,7 @@ export function TransactionModal({ isOpen, onClose, initialType = 'EXPENSE', onS
 
         setLoading(true);
         try {
-            await transactionService.createTransaction({
+            const transactionData = {
                 userId: userProfile.id,
                 accountId,
                 categoryId: type === 'TRANSFER' ? undefined : categoryId,
@@ -76,19 +89,26 @@ export function TransactionModal({ isOpen, onClose, initialType = 'EXPENSE', onS
                 transactionDate: new Date(date).toISOString(),
                 rawDescription: description,
                 transferToId: type === 'TRANSFER' ? transferToId : undefined
-            });
+            };
+
+            if (editingTransaction) {
+                await transactionService.updateTransaction(editingTransaction.id, transactionData);
+            } else {
+                await transactionService.createTransaction(transactionData);
+            }
 
             if (onSuccess) onSuccess();
             onClose();
         } catch (err: any) {
             console.error(err);
-            setError(err.response?.data?.message || 'Error al crear la transacción');
+            setError(err.response?.data?.message || 'Error al guardar la transacción');
         } finally {
             setLoading(false);
         }
     };
 
     const getTitle = () => {
+        if (editingTransaction) return 'Editar Transacción';
         switch (type) {
             case 'EXPENSE': return 'Nuevo Gasto';
             case 'INCOME': return 'Nuevo Ingreso';
@@ -107,9 +127,9 @@ export function TransactionModal({ isOpen, onClose, initialType = 'EXPENSE', onS
                             type="button"
                             onClick={() => setType(t)}
                             className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${type === t
-                                    ? 'bg-white text-neutral-darker shadow-sm'
-                                    : 'text-neutral hover:text-neutral-dark'
-                                }`}
+                                ? 'bg-white text-neutral-darker shadow-sm'
+                                : 'text-neutral hover:text-neutral-dark'
+                            }`}
                         >
                             {t === 'EXPENSE' ? 'Gasto' : t === 'INCOME' ? 'Ingreso' : 'Transferencia'}
                         </button>
