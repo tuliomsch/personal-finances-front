@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router-dom';
 
 interface RecentTransactionsProps {
     transactions: Transaction[];
+    userId: number;
     loading: boolean;
 }
 
-export function RecentTransactions({ transactions, loading }: RecentTransactionsProps) {
+export function RecentTransactions({ transactions, userId, loading }: RecentTransactionsProps) {
 
     const navigate = useNavigate();
     const groupedTransactions = groupTransactionsByDate(transactions);
@@ -38,7 +39,7 @@ export function RecentTransactions({ transactions, loading }: RecentTransactions
                             </div>
 
                             {group.transactions.map((tx) => (
-                                <TransactionItem key={tx.id} transaction={tx} />
+                                <TransactionItem key={tx.id} transaction={tx} userId={userId} />
                             ))}
                         </div>
                     ))

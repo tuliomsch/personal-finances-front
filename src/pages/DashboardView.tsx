@@ -57,6 +57,9 @@ export function DashboardView() {
                     type: tx.type,
                     category: tx.category?.name || 'Transferencia',
                     icon: tx.category?.icon || '💸',
+                    accountId: tx.accountId,
+                    categoryId: tx.categoryId,
+                    transferToId: tx.transferToId,
                 })).slice(0, 5);
                 setRecentTransactions(mappedTransactions);
                 setTotalIncome(transactionsData.totalIncome);
@@ -73,14 +76,14 @@ export function DashboardView() {
     useEffect(() => {
         refreshData();
 
-        const handleTransactionCreated = () => {
+        const handleTransactionEvent = () => {
             refreshData();
         };
 
-        window.addEventListener('transaction-created', handleTransactionCreated);
+        window.addEventListener('transaction-event', handleTransactionEvent);
 
         return () => {
-            window.removeEventListener('transaction-created', handleTransactionCreated);
+            window.removeEventListener('transaction-event', handleTransactionEvent);
         };
     }, [userProfile, startDate, endDate]);
 
@@ -137,7 +140,7 @@ export function DashboardView() {
 
                     {/* Right Column (1/3 width) */}
                     <div className="space-y-6">
-                        <RecentTransactions transactions={recentTransactions} loading={loadingTransactions} />
+                        <RecentTransactions transactions={recentTransactions} userId={userProfile?.id || 0} loading={loadingTransactions} />
                     </div>
                 </div>
 

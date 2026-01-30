@@ -45,6 +45,9 @@ export function TransactionsView() {
                     type: tx.type,
                     category: tx.category?.name || 'Transferencia',
                     icon: tx.category?.icon || '💸',
+                    accountId: tx.accountId,
+                    categoryId: tx.categoryId,
+                    transferToId: tx.transferToId,
                 }));
 
                 setTransactions(mappedTransactions);
@@ -61,14 +64,14 @@ export function TransactionsView() {
     useEffect(() => {
         refreshData();
 
-        const handleTransactionCreated = () => {
+        const handleTransactionEvent = () => {
             refreshData();
         };
 
-        window.addEventListener('transaction-created', handleTransactionCreated);
+        window.addEventListener('transaction-event', handleTransactionEvent);
 
         return () => {
-            window.removeEventListener('transaction-created', handleTransactionCreated);
+            window.removeEventListener('transaction-event', handleTransactionEvent);
         };
     }, [userProfile, startDate, endDate]);
 
@@ -173,10 +176,10 @@ export function TransactionsView() {
                                         <div className="sticky top-0 z-10 py-2 bg-neutral-light/20 backdrop-blur-sm -mx-2 px-2 rounded-lg mb-2">
                                             <h4 className="text-sm font-bold text-neutral-dark uppercase tracking-wider">{group.label}</h4>
                                         </div>
-                                        <div className="bg-white rounded-2xl shadow-sm border border-neutral-light overflow-hidden">
+                                        <div className="bg-white rounded-2xl shadow-sm border border-neutral-light">
                                             {group.transactions.map((tx, index) => (
                                                 <div key={tx.id} className={index !== 0 ? 'border-t border-neutral-light/50' : ''}>
-                                                    <TransactionItem transaction={tx} />
+                                                    <TransactionItem transaction={tx} userId={userProfile?.id || 0} />
                                                 </div>
                                             ))}
                                         </div>

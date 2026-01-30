@@ -6,6 +6,9 @@ export interface Transaction {
     type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
     category: string;
     icon: string;
+    accountId: number;
+    categoryId?: number;
+    transferToId?: number;
 }
 
 export interface GroupedTransactions {

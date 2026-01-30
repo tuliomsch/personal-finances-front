@@ -5,9 +5,9 @@ import { QuickActions } from './dashboard/QuickActions';
 export function MainLayout() {
     const location = useLocation();
 
-    const handleTransactionCreated = () => {
+    const handleTransactionEvent = () => {
         // Dispatch custom event to notify other components to refresh data
-        window.dispatchEvent(new Event('transaction-created'));
+        window.dispatchEvent(new Event('transaction-event'));
     };
 
     const isCompleteProfile = location.pathname === '/complete-profile';
@@ -18,7 +18,7 @@ export function MainLayout() {
             <main className="container mx-auto p-4 sm:p-6 lg:p-8 pb-24">
                 <Outlet />
             </main>
-            {!isCompleteProfile && <QuickActions onTransactionCreated={handleTransactionCreated} />}
+            {!isCompleteProfile && <QuickActions onTransactionCreated={handleTransactionEvent} />}
         </div>
     );
 }
