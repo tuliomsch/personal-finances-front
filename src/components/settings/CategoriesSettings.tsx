@@ -5,6 +5,7 @@ import { CreateCategoryModal } from '../CreateCategoryModal';
 import { PlusIcon } from '../icons/PlusIcon';
 import { EditIcon } from '../icons/EditIcon';
 import { TrashIcon } from '../icons/TrashIcon';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 export function CategoriesSettings() {
     const { userProfile } = useUserProfile();
@@ -12,6 +13,8 @@ export function CategoriesSettings() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [loading, setLoading] = useState(true);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const loadCategories = () => {
         if (!userProfile?.id) return;
@@ -26,17 +29,19 @@ export function CategoriesSettings() {
         loadCategories();
     }, [userProfile]);
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de que quieres eliminar esta categoría? Esto podría afectar a transacciones existentes.')) {
-            return;
-        }
+    const handleDelete = async () => {
+        if (!deleteConfirmId) return;
 
+        setIsDeleting(true);
         try {
-            await categoryService.deleteCategory(id);
+            await categoryService.deleteCategory(deleteConfirmId);
             loadCategories();
+            setDeleteConfirmId(null);
         } catch (error) {
             console.error('Error deleting category:', error);
             alert('Hubo un error al eliminar la categoría.');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -77,7 +82,7 @@ export function CategoriesSettings() {
                         <EditIcon className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={() => handleDelete(cat.id)}
+                        onClick={() => setDeleteConfirmId(cat.id)}
                         className="p-2 hover:bg-white rounded-lg text-neutral hover:text-error transition-all"
                         title="Eliminar"
                     >
@@ -187,6 +192,16 @@ export function CategoriesSettings() {
                 onClose={handleModalClose}
                 onSuccess={loadCategories}
                 editingCategory={editingCategory}
+            />
+
+            <ConfirmDialog
+                isOpen={!!deleteConfirmId}
+                onClose={() => setDeleteConfirmId(null)}
+                onConfirm={handleDelete}
+                title="Eliminar categoría"
+                description="¿Estás seguro de que quieres eliminar esta categoría? Esto podría afectar a transacciones existentes."
+                confirmLabel="Eliminar"
+                isLoading={isDeleting}
             />
         </div>
     );
