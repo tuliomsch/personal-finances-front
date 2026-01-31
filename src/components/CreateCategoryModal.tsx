@@ -55,6 +55,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, initialType = 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
         setError(null);
         if (!userProfile) return;
         if (!name.trim()) {
@@ -142,7 +143,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, initialType = 
                                 key={ic}
                                 type="button"
                                 onClick={() => setIcon(ic)}
-                                className={`w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center text-xl transition-all ml-1 mt-1 ${icon === ic
+                                className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-xl transition-all ml-1 mt-1 ${icon === ic
                                     ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110'
                                     : 'bg-white border border-neutral-light hover:bg-neutral-light'
                                     }`}
