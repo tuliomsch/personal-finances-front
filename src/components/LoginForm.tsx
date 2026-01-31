@@ -133,9 +133,9 @@ export function LoginForm({ mode, onSubmit, onSuccess, setSignedUpEmail, onGoogl
 
             {/* Divider */}
             <div className="relative flex items-center py-2">
-                <div className="flex-grow border-t border-neutral-light"></div>
-                <span className="flex-shrink mx-4 text-neutral text-sm font-medium">o continúa con</span>
-                <div className="flex-grow border-t border-neutral-light"></div>
+                <div className="grow border-t border-neutral-light"></div>
+                <span className="shrink mx-4 text-neutral text-sm font-medium">o continúa con</span>
+                <div className="grow border-t border-neutral-light"></div>
             </div>
 
             {/* Google Sign In Button */}
