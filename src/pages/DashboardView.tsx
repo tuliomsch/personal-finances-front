@@ -1,15 +1,17 @@
 import { SummaryCard } from '../components/dashboard/SummaryCard';
 import { AccountsWidget, type DashboardAccount } from '../components/dashboard/AccountsWidget';
 import { RecentTransactions } from '../components/dashboard/RecentTransactions';
+import { TopExpensesWidget } from '../components/dashboard/TopExpensesWidget';
 import { SavingsIcon } from '../components/icons/SavingsIcon';
 import { StonksIcon } from '../components/icons/StonksIcon';
 import { NotStonksIcon } from '../components/icons/NotStonksIcon';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { useState, useEffect } from 'react';
 import { accountService } from '../services/accountService';
-import { transactionService } from '../services/transactionService';
+import { transactionService, type ExpenseAnalyticsSummaryData } from '../services/transactionService';
 import { DateFilterDropdown } from '../components/dashboard/DateFilterDropdown';
 import { type Transaction } from '../utils/transactions';
+import { subMinutes } from 'date-fns';
 
 export function DashboardView() {
     const { userProfile } = useUserProfile();
@@ -21,6 +23,8 @@ export function DashboardView() {
     const [totalIncome, setTotalIncome] = useState<number>(0);
     const [totalExpense, setTotalExpense] = useState<number>(0);
     const [loadingTransactions, setLoadingTransactions] = useState(true);
+    const [analyticsSummary, setAnalyticsSummary] = useState<ExpenseAnalyticsSummaryData | null>(null);
+    const [loadingAnalytics, setLoadingAnalytics] = useState(true);
 
     // Estados para el filtro de fecha (por defectos mes actual)
     const [startDate, setStartDate] = useState<Date>(() => {
@@ -36,39 +40,58 @@ export function DashboardView() {
         if (userProfile?.id) {
             setLoadingAccounts(true);
             setLoadingTransactions(true);
+            setLoadingAnalytics(true);
             try {
                 // Formatear fechas para la API (YYYY-MM-DD)
-                const startStr = startDate.toISOString().split('T')[0];
-                const endStr = endDate.toISOString().split('T')[0];
+                const offset = startDate.getTimezoneOffset();
+                const startStr = subMinutes(startDate, offset).toISOString().split('T')[0];
+                const endStr = subMinutes(endDate, offset).toISOString().split('T')[0];
 
-                const [accountsData, transactionsData] = await Promise.all([
+                const [accountsResult, transactionsResult, analyticsSummaryResult] = await Promise.allSettled([
                     accountService.getAccounts(userProfile.id),
-                    transactionService.getTransactions(userProfile.id, startStr, endStr)
+                    transactionService.getTransactions(userProfile.id, startStr, endStr),
+                    transactionService.getExpenseAnalyticsSummary(userProfile.id, startStr, endStr, 3)
                 ]);
 
-                setAccounts(accountsData.accounts);
-                setTotalBalance(accountsData.totalBalance);
+                if (accountsResult.status === 'fulfilled') {
+                    setAccounts(accountsResult.value.accounts);
+                    setTotalBalance(accountsResult.value.totalBalance);
+                } else {
+                    console.error('Error fetching accounts:', accountsResult.reason);
+                }
 
-                const mappedTransactions: Transaction[] = transactionsData.transactions.map((tx) => ({
-                    id: tx.id,
-                    description: tx.description,
-                    amount: tx.amount,
-                    transactionDate: tx.transactionDate,
-                    type: tx.type,
-                    category: tx.transferToId ? 'Transferencia' : tx.category?.name || 'Sin asignar',
-                    icon: tx.transferToId ? '💸' : tx.category?.icon || '❓',
-                    accountId: tx.accountId,
-                    categoryId: tx.categoryId,
-                    transferToId: tx.transferToId,
-                })).slice(0, 5);
-                setRecentTransactions(mappedTransactions);
-                setTotalIncome(transactionsData.totalIncome);
-                setTotalExpense(transactionsData.totalExpense);
+                if (transactionsResult.status === 'fulfilled') {
+                    const transactionsData = transactionsResult.value;
+                    const mappedTransactions: Transaction[] = transactionsData.transactions.map((tx) => ({
+                        id: tx.id,
+                        description: tx.description,
+                        amount: tx.amount,
+                        transactionDate: tx.transactionDate,
+                        type: tx.type,
+                        category: tx.transferToId ? 'Transferencia' : tx.category?.name || 'Sin asignar',
+                        icon: tx.transferToId ? '💸' : tx.category?.icon || '❓',
+                        accountId: tx.accountId,
+                        categoryId: tx.categoryId,
+                        transferToId: tx.transferToId,
+                    })).slice(0, 5);
+                    setRecentTransactions(mappedTransactions);
+                    setTotalIncome(transactionsData.totalIncome);
+                    setTotalExpense(transactionsData.totalExpense);
+                } else {
+                    console.error('Error fetching transactions:', transactionsResult.reason);
+                }
+
+                if (analyticsSummaryResult.status === 'fulfilled') {
+                    setAnalyticsSummary(analyticsSummaryResult.value);
+                } else {
+                    console.error('Error fetching analytics summary:', analyticsSummaryResult.reason);
+                }
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
             } finally {
                 setLoadingAccounts(false);
                 setLoadingTransactions(false);
+                setLoadingAnalytics(false);
             }
         }
     };
@@ -88,7 +111,7 @@ export function DashboardView() {
     }, [userProfile, startDate, endDate]);
 
     return (
-        <div className="min-h-screen bg-neutral-light/20 p-4 sm:p-6 lg:p-8 animate-fade-in">
+        <div className="min-h-screen p-4 sm:p-6 lg:p-8 animate-fade-in">
             {/* Hero / Summary Section */}
             <div className="max-w-7xl mx-auto space-y-8">
 
@@ -98,10 +121,14 @@ export function DashboardView() {
                         <h1 className="text-3xl font-bold text-neutral-darker">Panel General</h1>
                         <p className="text-neutral text-lg">Resumen de tu salud financiera</p>
                     </div>
-                    <DateFilterDropdown onDateRangeChange={(start, end) => {
-                        setStartDate(start);
-                        setEndDate(end);
-                    }} />
+                    <DateFilterDropdown
+                        startDate={startDate}
+                        endDate={endDate}
+                        onDateRangeChange={(start, end) => {
+                            setStartDate(start);
+                            setEndDate(end);
+                        }}
+                    />
                 </div>
 
                 {/* Summary Cards Grid */}
@@ -130,16 +157,21 @@ export function DashboardView() {
                     />
                 </div>
 
-                {/* Main Content Grid: Accounts (Left) & Activity (Right) */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 auto-rows-min gap-8 overflow-y-auto pb-4">
 
-                    {/* Left Column (2/3 width on large screens) */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="lg:col-span-2 lg:row-span-2">
                         <AccountsWidget accounts={accounts} loading={loadingAccounts} onRefresh={refreshData} />
                     </div>
 
-                    {/* Right Column (1/3 width) */}
-                    <div className="space-y-6">
+                    <div className="lg:col-span-1">
+                        <TopExpensesWidget
+                            topExpenses={analyticsSummary?.topCategories || []}
+                            totalExpense={analyticsSummary?.totalExpense || 0}
+                            loading={loadingAnalytics}
+                        />
+                    </div>
+
+                    <div className="lg:col-span-1">
                         <RecentTransactions transactions={recentTransactions} userId={userProfile?.id || 0} loading={loadingTransactions} />
                     </div>
                 </div>

@@ -7,37 +7,45 @@ import { CalendarTab } from './tabs/CalendarTab';
 import { CustomTab } from './tabs/CustomTab';
 
 interface DateFilterDropdownProps {
+    startDate: Date;
+    endDate: Date;
     onDateRangeChange?: (startDate: Date, endDate: Date) => void;
 }
 
-export function DateFilterDropdown({ onDateRangeChange }: DateFilterDropdownProps) {
+export function DateFilterDropdown({ startDate, endDate, onDateRangeChange }: DateFilterDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'calendar' | 'period' | 'custom'>('calendar');
 
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-    const [selectedOption, setSelectedOption] = useState(() => {
-        return format(new Date(), "MMMM yyyy", { locale: es });
-    });
-
-    const [rangeLabel, setRangeLabel] = useState(() => {
-        const start = startOfMonth(new Date());
-        const end = endOfMonth(new Date());
-        return `${format(start, "dd MMM", { locale: es })} - ${format(end, "dd MMM", { locale: es })}`;
-    });
+    const [selectedOption, setSelectedOption] = useState("");
+    const [rangeLabel, setRangeLabel] = useState("");
+    const [periodType, setPeriodType] = useState<'calendar' | 'period' | 'custom'>('calendar');
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    // Update labels when props change
+    useEffect(() => {
+        if (periodType === 'calendar') {
+            setSelectedOption(format(startDate, "MMMM yyyy", { locale: es }));
+        } else if (periodType === 'custom') {
+            setSelectedOption(`${format(startDate, "dd MMM", { locale: es })} - ${format(endDate, "dd MMM", { locale: es })}`);
+        }
+
+        setRangeLabel(`${format(startDate, "dd MMM", { locale: es })} - ${format(endDate, "dd MMM", { locale: es })}`);
+
+        // Update calendar year if the selected date is different
+        setCurrentYear(startDate.getFullYear());
+    }, [startDate, endDate]);
+
     // Handler para Calendar Tab
     const handleMonthSelect = (monthIndex: number) => {
+        setPeriodType('calendar');
         let date = new Date();
         date = setYear(date, currentYear);
         date = setMonth(date, monthIndex);
 
         const start = startOfMonth(date);
         const end = endOfMonth(date);
-
-        setSelectedOption(format(date, "MMMM yyyy", { locale: es }));
-        setRangeLabel(`${format(start, "dd MMM", { locale: es })} - ${format(end, "dd MMM", { locale: es })}`);
 
         setIsOpen(false);
 
@@ -48,12 +56,9 @@ export function DateFilterDropdown({ onDateRangeChange }: DateFilterDropdownProp
 
     // Handler para Custom Tab
     const handleCustomApply = (startStr: string, endStr: string) => {
+        setPeriodType('custom');
         const start = parseISO(`${startStr}T00:00:00`);
         const end = parseISO(`${endStr}T00:00:00`);
-
-        const label = `${format(start, "dd MMM", { locale: es })} - ${format(end, "dd MMM", { locale: es })}`;
-        setSelectedOption(label);
-        setRangeLabel(label);
 
         setIsOpen(false);
 
@@ -106,7 +111,7 @@ export function DateFilterDropdown({ onDateRangeChange }: DateFilterDropdownProp
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 mt-3 w-80 bg-white/95 backdrop-blur-xl border border-neutral-light rounded-2xl shadow-strong overflow-hidden z-[100] animate-in fade-in zoom-in duration-200 origin-top-right">
+                <div className="absolute right-0 mt-3 w-80 bg-white/95 backdrop-blur-xl border border-neutral-light rounded-2xl shadow-strong overflow-hidden z-100 animate-in fade-in zoom-in duration-200 origin-top-right">
                     {/* Tabs Header */}
                     <div className="flex p-1.5 bg-neutral-light/30 border-b border-neutral-light">
                         <button
