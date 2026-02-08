@@ -16,13 +16,13 @@ export function RecentTransactions({ transactions, userId, loading }: RecentTran
     const groupedTransactions = groupTransactionsByDate(transactions);
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-neutral-light overflow-hidden flex flex-col h-full">
+        <div className="bg-white rounded-2xl shadow-sm border border-neutral-light flex flex-col h-full pb-6">
             <div className="p-6 border-b border-neutral-light/50 flex justify-between items-center">
                 <h3 className="text-lg font-bold text-neutral-darker">Actividad Reciente</h3>
                 <button onClick={() => navigate('/transactions')} className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">Ver todo</button>
             </div>
 
-            <div className="p-4 space-y-4 overflow-y-auto max-h-[525px] custom-scrollbar">
+            <div className="p-4 space-y-4 overflow-y-auto min-h-fit custom-scrollbar">
                 {loading ? (
                     <div className="flex items-center justify-center py-8">
                         <SpinnerIcon className="w-8 h-8 text-primary animate-spin" />

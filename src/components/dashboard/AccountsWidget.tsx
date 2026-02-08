@@ -105,7 +105,7 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
 
     return (
         <>
-            <div className="bg-white rounded-2xl shadow-sm border border-neutral-light overflow-hidden flex flex-col h-full">
+            <div className="bg-white rounded-2xl shadow-sm border border-neutral-light overflow-hidden flex flex-col pb-6">
                 <div className="p-6 border-b border-neutral-light/50 flex justify-between items-center">
                     <h3 className="text-lg font-bold text-neutral-darker">Mis Cuentas</h3>
                     <div className="flex gap-2">
@@ -128,7 +128,7 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
                     </div>
                 </div>
 
-                <div className="p-4 space-y-6 overflow-y-auto max-h-[525px] custom-scrollbar">
+                <div className="p-4 space-y-6 overflow-y-auto min-h-fit custom-scrollbar">
                     {loading ? (
                         <div className="flex items-center justify-center py-8">
                             <SpinnerIcon className="w-8 h-8 text-primary animate-spin" />
@@ -232,7 +232,7 @@ export function AccountsWidget({ accounts, loading, onRefresh }: AccountsWidgetP
                 onClose={() => setDeleteConfirmId(null)}
                 onConfirm={handleDeleteAccount}
                 title="¿Eliminar cuenta?"
-                description="Esta acción no se puede deshacer. Se eliminará la cuenta pero se mantendrán sus transacciones."                           
+                description="Esta acción no se puede deshacer. Se eliminará la cuenta pero se mantendrán sus transacciones."
                 confirmLabel="Eliminar"
                 isLoading={deleting}
             />

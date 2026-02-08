@@ -13,7 +13,6 @@ export const useUserProfile = () => {
       return data;
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 404) {
-        // User not found in our DB
         throw error;
       }
       throw error;
@@ -22,7 +21,6 @@ export const useUserProfile = () => {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      // Reset states
       setUserProfile(null);
       setError(null);
       setLoading(true);

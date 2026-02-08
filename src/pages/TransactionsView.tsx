@@ -7,6 +7,7 @@ import { useUserProfile } from '../hooks/useUserProfile';
 import { SpinnerIcon } from '../components/icons/SpinnerIcon';
 import { SearchIcon } from '../components/icons/SearchIcon';
 import { formatCurrency } from '../utils/format';
+import { subMinutes } from 'date-fns';
 
 export function TransactionsView() {
     const { userProfile } = useUserProfile();
@@ -32,8 +33,9 @@ export function TransactionsView() {
         if (userProfile?.id) {
             setLoading(true);
             try {
-                const startStr = startDate.toISOString().split('T')[0];
-                const endStr = endDate.toISOString().split('T')[0];
+                const offset = startDate.getTimezoneOffset();
+                const startStr = subMinutes(startDate, offset).toISOString().split('T')[0];
+                const endStr = subMinutes(endDate, offset).toISOString().split('T')[0];
 
                 const data = await transactionService.getTransactions(userProfile.id, startStr, endStr);
 
@@ -100,6 +102,8 @@ export function TransactionsView() {
                     </div>
 
                     <DateFilterDropdown
+                        startDate={startDate}
+                        endDate={endDate}
                         onDateRangeChange={(start, end) => {
                             setStartDate(start);
                             setEndDate(end);
