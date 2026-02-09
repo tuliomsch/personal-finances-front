@@ -22,26 +22,12 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, initialType = 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Reset when modal opens or type changes
+    // 1. Initialization logic - runs only when modal opens or editing category changes
     useEffect(() => {
-        if (isOpen && userProfile?.id) {
-            // Load categories to populate parent selector
-            categoryService.getCategories(userProfile.id)
-                .then(cats => {
-                    // Only top-level categories of the same type can be parents
-                    // Also exclude the category being edited to avoid self-parenting
-                    const parents = cats.filter(c =>
-                        c.type === type &&
-                        c.parentId === null &&
-                        c.id !== editingCategory?.id
-                    );
-                    setAvailableParents(parents);
-                })
-                .catch(console.error);
-
+        if (isOpen) {
             if (editingCategory) {
                 setName(editingCategory.name);
-                setIcon(editingCategory.icon);
+                setIcon(editingCategory.icon || '🛒');
                 setType(editingCategory.type);
                 setParentId(editingCategory.parentId);
             } else {
@@ -50,8 +36,30 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, initialType = 
                 setType(initialType);
                 setParentId(null);
             }
+            setError(null);
         }
-    }, [isOpen, type, userProfile, editingCategory, initialType]);
+    }, [isOpen, editingCategory, initialType]);
+
+    // 2. Parent categories logic - runs when type or user changes
+    useEffect(() => {
+        if (isOpen && userProfile?.id) {
+            categoryService.getCategories(userProfile.id)
+                .then(cats => {
+                    const parents = cats.filter(c =>
+                        c.type === type &&
+                        c.parentId === null &&
+                        c.id !== editingCategory?.id
+                    );
+                    setAvailableParents(parents);
+
+                    // Reset parentId if the selected parent is not in the new list
+                    if (parentId && !parents.find(p => p.id === parentId)) {
+                        setParentId(null);
+                    }
+                })
+                .catch(console.error);
+        }
+    }, [isOpen, type, userProfile?.id, editingCategory?.id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -92,7 +100,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, initialType = 
         }
     };
 
-    const commonIcons = ['🛒', '🍔', '🚗', '🏠', '💊', '🎓', '✈️', '🎁', '💸', '💼', '💡', '🎮', '🐾', '🏦'];
+    const commonIcons = ['🛒', '💰', '🍔', '🚗', '🏠', '💊', '🎓', '✈️', '🎁', '💸', '💼', '💡', '🎮', '🐾', '🏦'];
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}>
@@ -105,7 +113,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, initialType = 
                                 key={t}
                                 type="button"
                                 onClick={() => setType(t)}
-                                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${type === t
+                                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all hover:cursor-pointer ${type === t
                                     ? 'bg-white text-neutral-darker shadow-sm'
                                     : 'text-neutral hover:text-neutral-dark'
                                     }`}
